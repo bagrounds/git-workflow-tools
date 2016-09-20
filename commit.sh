@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for s in major minor patch
+for s in MAJOR MINOR PATCH
 do
   if [ "$1" = $s ]
   then
@@ -14,7 +14,7 @@ then
   exit 1
 fi
 
-for e in add change deprecate remove fix security
+for e in ADD CHANGE DEPRECATE REMOVE FIX SECURITY
 do
   if [ "$2" = $e ]
   then
