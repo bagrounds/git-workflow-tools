@@ -1,0 +1,47 @@
+{
+  "image": "docker",
+  "services": [
+      "docker:dind"
+    ],
+  "stages": [
+      "build",
+      "test",
+      "release"
+    ],
+  "variables": {
+      "REGISTRY": "registry.gitlab.com",
+      "PROJECT": "bagrounds/hash-function",
+      "TEST_COMMAND": "npm test",
+      "VERSION": "$(sed -nE 's/^\\s*\"version\": \"(.*?)\",$/\\1/p' package.json)",
+      "CONTAINER_TEST_IMAGE": "$REGISTRY/$PROJECT:$CI_BUILD_REF_NAME",
+      "CONTAINER_RELEASE_IMAGE": "$REGISTRY/$PROJECT:$VERSION"
+    },
+  "before_script": [
+      "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $REGISTRY"
+    ],
+  "build": {
+      "stage": "build",
+      "script": [
+            "docker build --pull -t $CONTAINER_TEST_IMAGE .",
+            "docker push $CONTAINER_TEST_IMAGE"
+          ]
+    },
+  "test": {
+      "stage": "test",
+      "script": [
+            "docker pull $CONTAINER_TEST_IMAGE",
+            "docker run $CONTAINER_TEST_IMAGE $TEST_COMMAND"
+          ]
+    },
+  "release": {
+      "stage": "release",
+      "script": [
+            "docker pull $CONTAINER_TEST_IMAGE",
+            "docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE",
+            "docker push $CONTAINER_RELEASE_IMAGE"
+          ],
+      "only": [
+            "master"
+          ]
+    }
+}
